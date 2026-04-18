@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Kisan Saathi AI — Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0fdf4;
+            color: #1a1a1a;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: #14532d;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar p {
+            color: #86efac;
+            font-size: 11px;
+            margin-bottom: 24px;
+        }
+
+        .nav-item {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: #166534;
+            color: #fff;
+        }
+
+        .main {
+            margin-left: 220px;
+            padding: 24px;
+        }
+
+        .topbar {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #d1fae5;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .topbar h1 {
+            font-size: 18px;
+            color: #14532d;
+        }
+
+        .topbar span {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            background: #fff;
+            border-radius: 12px;
+            padding: 18px;
+            border: 1px solid #d1fae5;
+        }
+
+        .stat .icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .stat .value {
+            font-size: 26px;
+            font-weight: 700;
+            color: #14532d;
+        }
+
+        .stat .label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .stat .delta {
+            font-size: 11px;
+            color: #16a34a;
+            margin-top: 6px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 18px;
+            border: 1px solid #d1fae5;
+            margin-bottom: 14px;
+        }
+
+        .card h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            color: #14532d;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 10px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            border-bottom: 1px solid #f0fdf4;
+            background: #f9fafb;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0fdf4;
+            color: #374151;
+        }
+
+        tr:hover td {
+            background: #f0fdf4;
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .badge.green {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.gold {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .activity {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .act {
+            display: flex;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0fdf4;
+            align-items: flex-start;
+        }
+
+        .act:last-child {
+            border-bottom: none;
+        }
+
+        .act-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .act-text {
+            font-size: 12px;
+            color: #374151;
+        }
+
+        .act-name {
+            font-weight: 600;
+            color: #14532d;
+        }
+
+        .act-time {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .lang-select {
+            border: 1px solid #d1fae5;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12px;
+            color: #14532d;
+            background: #fff;
+            cursor: pointer;
+            max-width: 220px;
+        }
+
+        .lang-badge {
+            display: inline-block;
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 10px;
+            margin: 2px;
+        }
+
+        .lang-section {
+            margin-bottom: 16px;
+        }
+
+        .lang-section-title {
+            font-size: 11px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            padding: 0 4px;
+        }
+
+        .notify {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #14532d;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            display: none;
+            z-index: 999;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2>🌾 किसान साथी AI</h2>
+        <p>Admin Dashboard</p>
+        <button class="nav-item active" onclick="showSection('dashboard')">📊 Dashboard</button>
+        <button class="nav-item" onclick="showSection('farmers')">👨‍🌾 Farmers</button>
+        <button class="nav-item" onclick="showSection('conversations')">💬 Conversations</button>
+        <button class="nav-item" onclick="showSection('mandi')">💰 Mandi Prices</button>
+        <button class="nav-item" onclick="showSection('disease')">🔬 Disease Log</button>
+        <button class="nav-item" onclick="showSection('languages')">🗣️ Languages</button>
+        <button class="nav-item" onclick="showSection('settings')">⚙️ Settings</button>
+        <div style="margin-top:40px;border-top:1px solid rgba(255,255,255,0.1);padding-top:20px;">
+            <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:12px;">
+                <div style="color:#86efac;font-size:10px;">STATUS</div>
+                <div style="color:#fff;font-size:13px;font-weight:600;margin-top:2px;"><span
+                        class="status-dot"></span>Bot Online</div>
+                <div style="color:#86efac;font-size:11px;">Uptime: 99.8%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div>
+                <h1 id="page-title">Dashboard Overview</h1>
+                <span>Kisan Saathi AI — Live System</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <span style="font-size:12px;color:#6b7280;" id="clock"></span>
+                <select class="lang-select" id="mainLang" onchange="setLanguage(this.value)">
+                    <optgroup label="── Scheduled 8th (Constitution) ──">
+                        <option value="hi">🗣️ Hindi (हिंदी)</option>
+                        <option value="bn">🗣️ Bengali (বাংলা)</option>
+                        <option value="te">🗣️ Telugu (తెలుగు)</option>
+                        <option value="mr">🗣️ Marathi (मराठी)</option>
+                        <option value="ta">🗣️ Tamil (தமிழ்)</option>
+                        <option value="ur">🗣️ Urdu (اردو)</option>
+                        <option value="gu">🗣️ Gujarati (ગુજરાતી)</option>
+                        <option value="kn">🗣️ Kannada (ಕನ್ನಡ)</option>
+                        <option value="ml">🗣️ Malayalam (മലയാളം)</option>
+                        <option value="or">🗣️ Odia (ଓଡ଼ିଆ)</option>
+                        <option value="pa">🗣️ Punjabi (ਪੰਜਾਬੀ)</option>
+                        <option value="as">🗣️ Assamese (অসমীয়া)</option>
+                        <option value="mai">🗣️ Maithili (मैथिली)</option>
+                        <option value="sat">🗣️ Santali (ᱥᱟᱱᱛᱟᱲᱤ)</option>
+                        <option value="ks">🗣️ Kashmiri (کٲشُر)</option>
+                        <option value="sd">🗣️ Sindhi (سنڌي)</option>
+                        <option value="kok">🗣️ Konkani (कोंकणी)</option>
+                        <option value="doi">🗣️ Dogri (डोगरी)</option>
+                        <option value="mni">🗣️ Manipuri (মৈতৈলোন্)</option>
+                        <option value="brx">🗣️ Bodo (बड़ो)</option>
+                        <option value="sa">🗣️ Sanskrit (संस्कृतम्)</option>
+                        <option value="ne">🗣️ Nepali (नेपाली)</option>
+                    </optgroup>
+                    <optgroup label="── Bihar / UP / MP ──">
+                        <option value="bho">🗣️ Bhojpuri (भोजपुरी)</option>
+                        <option value="mag">🗣️ Magahi (मगही)</option>
+                        <option value="awa">🗣️ Awadhi (अवधी)</option>
+                        <option value="bra">🗣️ Brajbhasha (ब्रजभाषा)</option>
+                        <option value="hne">🗣️ Chhattisgarhi (छत्तीसगढ़ी)</option>
+                        <option value="bun">🗣️ Bundeli (बुंदेली)</option>
+                        <option value="dcc">🗣️ Dakhini (दक्खिनी)</option>
+                    </optgroup>
+                    <optgroup label="── Rajasthan / Gujarat ──">
+                        <option value="raj">🗣️ Rajasthani (राजस्थानी)</option>
+                        <option value="mwr">🗣️ Marwari (मारवाड़ी)</option>
+                        <option value="mup">🗣️ Malvi (मालवी)</option>
+                        <option value="hoj">🗣️ Hadothi (हाड़ौती)</option>
+                        <option value="wry">🗣️ Mewari (मेवाड़ी)</option>
+                        <option value="nim">🗣️ Nimadi (निमाड़ी)</option>
+                        <option value="kfr">🗣️ Kachchi (કચ્છી)</option>
+                        <option value="wbq">🗣️ Bagri (बागड़ी)</option>
+                        <option value="wagd">🗣️ Wagdi (वागड़ी)</option>
+                    </optgroup>
+                    <optgroup label="── Haryana / Punjab / HP ──">
+                        <option value="bgc">🗣️ Haryanvi (हरियाणवी)</option>
+                        <option value="him">🗣️ Himachali (हिमाचली)</option>
+                        <option value="dgo">🗣️ Kangri (कांगड़ी)</option>
+                        <option value="kfx">🗣️ Kulvi (कुल्लवी)</option>
+                    </optgroup>
+                    <optgroup label="── Uttarakhand ──">
+                        <option value="gbm">🗣️ Garhwali (गढ़वाली)</option>
+                        <option value="kfy">🗣️ Kumaoni (कुमाऊँनी)</option>
+                    </optgroup>
+                    <optgroup label="── Jharkhand / Bengal ──">
+                        <option value="sck">🗣️ Sadri (सादरी)</option>
+                        <option value="kru">🗣️ Kurukh (कुड़ुख)</option>
+                        <option value="syl">🗣️ Sylheti (সিলেটি)</option>
+                        <option value="lmn">🗣️ Lambadi (లంబాడి)</option>
+                    </optgroup>
+                    <optgroup label="── Northeast India ──">
+                        <option value="lus">🗣️ Mizo (Mizo ṭawng)</option>
+                        <option value="kha">🗣️ Khasi (খাসি)</option>
+                        <option value="nag">🗣️ Nagamese (Nagamese)</option>
+                        <option value="lep">🗣️ Lepcha (ᰛᰩᰵᰛᰧᰵᰶ)</option>
+                        <option value="lif">🗣️ Limbu (ᤕᤠᤰᤌᤢᤱ)</option>
+                    </optgroup>
+                    <optgroup label="── South India ──">
+                        <option value="tcy">🗣️ Tulu (ತುಳು)</option>
+                        <option value="gom">🗣️ Goan Konkani (गोंयची कोंकणी)</option>
+                        <option value="koi">🗣️ Koya (కోయ)</option>
+                        <option value="gon">🗣️ Gondi (गोंडी)</option>
+                    </optgroup>
+                    <optgroup label="── Tribal Languages ──">
+                        <option value="bhb">🗣️ Bhili (भीली)</option>
+                        <option value="mwr2">🗣️ Mewati (मेवाती)</option>
+                        <option value="stt">🗣️ Ho (हो)</option>
+                        <option value="wls">🗣️ Warli (वारली)</option>
+                        <option value="mun">🗣️ Mundari (मुंडारी)</option>
+                    </optgroup>
+                </select>
+                <button onclick="location.reload()"
+                    style="background:#14532d;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;">🔄
+                    Refresh</button>
+            </div>
+        </div>
+
+        <!-- DASHBOARD SECTION -->
+        <div id="sec-dashboard">
+            <div class="stats">
+                <div class="stat">
+                    <div class="icon">👨‍🌾</div>
+                    <div class="value" id="s1">14,832</div>
+                    <div class="label">Total Farmers</div>
+                    <div class="delta">↑ 284 this week</div>
+                </div>
+                <div class="stat">
+                    <div class="icon">💬</div>
+                    <div class="value" id="s2">3,941</div>
+                    <div class="label">Messages Today</div>
+                    <div class="delta">↑ 12% vs yesterday</div>
+                </div>
+                <div class="stat">
+                    <div class="icon">🔬</div>
+                    <div class="value">287</div>
+                    <div class="label">Disease Detections</div>
+                    <div class="delta">↑ 45 this week</div>
+                </div>
+                <div class="stat">
+                    <div class="icon">⭐</div>
+                    <div class="value">1,209</div>
+                    <div class="label">Premium Users</div>
+                    <div class="delta">↑ ₹59,241 MRR</div>
+                </div>
+            </div>
+
+            <div class="cards">
+                <div class="card">
+                    <h3>Recent Farmers</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Farmer</th>
+                                <th>State</th>
+                                <th>Language</th>
+                                <th>Plan</th>
+                                <th>Messages</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Ramesh Kumar</td>
+                                <td>Bihar</td>
+                                <td>Bhojpuri</td>
+                                <td><span class="badge gold">⭐ Premium</span></td>
+                                <td>142</td>
+                            </tr>
+                            <tr>
+                                <td>Sunita Devi</td>
+                                <td>Bihar</td>
+                                <td>Hindi</td>
+                                <td><span class="badge green">Free</span></td>
+                                <td>38</td>
+                            </tr>
+                            <tr>
+                                <td>Gurpreet Singh</td>
+                                <td>Punjab</td>
+                                <td>Punjabi</td>
+                                <td><span class="badge gold">⭐ Premium</span></td>
+                                <td>210</td>
+                            </tr>
+                            <tr>
+                                <td>Anita Patil</td>
+                                <td>Maharashtra</td>
+                                <td>Marathi</td>
+                                <td><span class="badge green">Free</span></td>
+                                <td>21</td>
+                            </tr>
+                            <tr>
+                                <td>Mohan Lal</td>
+                                <td>UP</td>
+                                <td>Awadhi</td>
+                                <td><span class="badge gold">⭐ Premium</span></td>
+                                <td>89</td>
+                            </tr>
+                            <tr>
+                                <td>Kavitha R.</td>
+                                <td>Tamil Nadu</td>
+                                <td>Tamil</td>
+                                <td><span class="badge green">Free</span></td>
+                                <td>14</td>
+                            </tr>
+                            <tr>
+                                <td>Pradeep Yadav</td>
+                                <td>Bihar</td>
+                                <td>Magahi</td>
+                                <td><span class="badge green">Free</span></td>
+                                <td>55</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card">
+                    <h3>Live Activity</h3>
+                    <div class="activity">
+                        <div class="act">
+                            <div class="act-icon" style="background:#fee2e2;">🔬</div>
+                            <div>
+                                <div class="act-text"><span class="act-name">Ramesh Kumar</span> — Disease photo bheji
+                                </div>
+                                <div class="act-time">2 min ago</div>
+                            </div>
+                        </div>
+                        <div class="act">
+                            <div class="act-icon" style="background:#fef3c7;">💰</div>
+                            <div>
+                                <div class="act-text"><span class="act-name">Sunita Devi</span> — Mandi bhav poocha
+                                </div>
+                                <div class="act-time">5 min ago</div>
+                            </div>
+                        </div>
+                        <div class="act">
+                            <div class="act-icon" style="background:#e0f2fe;">🌦️</div>
+                            <div>
+                                <div class="act-text"><span class="act-name">Gurpreet Singh</span> — Weather advisory
+                                </div>
+                                <div class="act-time">9 min ago</div>
+                            </div>
+                        </div>
+                        <div class="act">
+                            <div class="act-icon" style="background:#dcfce7;">📜</div>
+                            <div>
+                                <div class="act-text"><span class="act-name">Anita Patil</span> — PM Fasal Bima poocha
+                                </div>
+                                <div class="act-time">12 min ago</div>
+                            </div>
+                        </div>
+                        <div class="act">
+                            <div class="act-icon" style="background:#fee2e2;">🔬</div>
+                            <div>
+                                <div class="act-text"><span class="act-name">Mohan Lal</span> — Ganna ki photo bheji
+                                </div>
+                                <div class="act-time">18 min ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Today's Mandi Rates</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Crop</th>
+                            <th>State</th>
+                            <th>Min (₹/q)</th>
+                            <th>Max (₹/q)</th>
+                            <th>Modal (₹/q)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>🌾 Wheat / गेहूं</td>
+                            <td>Bihar</td>
+                            <td>2,100</td>
+                            <td>2,250</td>
+                            <td><b>2,180</b></td>
+                        </tr>
+                        <tr>
+                            <td>🌿 Mustard / सरसों</td>
+                            <td>UP</td>
+                            <td>4,800</td>
+                            <td>5,200</td>
+                            <td><b>5,050</b></td>
+                        </tr>
+                        <tr>
+                            <td>🥔 Potato / आलू</td>
+                            <td>Punjab</td>
+                            <td>900</td>
+                            <td>1,200</td>
+                            <td><b>1,050</b></td>
+                        </tr>
+                        <tr>
+                            <td>🌾 Paddy / धान</td>
+                            <td>Bihar</td>
+                            <td>1,700</td>
+                            <td>1,900</td>
+                            <td><b>1,815</b></td>
+                        </tr>
+                        <tr>
+                            <td>🧅 Onion / प्याज</td>
+                            <td>Maharashtra</td>
+                            <td>1,500</td>
+                            <td>2,000</td>
+                            <td><b>1,750</b></td>
+                        </tr>
+                        <tr>
+                            <td>🍅 Tomato / टमाटर</td>
+                            <td>UP</td>
+                            <td>800</td>
+                            <td>1,500</td>
+                            <td><b>1,150</b></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- LANGUAGES SECTION -->
+        <div id="sec-languages" style="display:none;">
+            <div class="card">
+                <h3>🗣️ Supported Indian Languages (50+)</h3>
+                <p style="font-size:12px;color:#6b7280;margin-bottom:16px;">Bot in farmers ki apni bhasha mein jawab
+                    deta hai</p>
+
+                <div class="lang-section">
+                    <div class="lang-section-title">📜 8th Schedule (22 Official)</div>
+                    <span class="lang-badge">Hindi हिंदी</span><span class="lang-badge">Bengali বাংলা</span><span
+                        class="lang-badge">Telugu తెలుగు</span><span class="lang-badge">Marathi मराठी</span><span
+                        class="lang-badge">Tamil தமிழ்</span><span class="lang-badge">Urdu اردو</span><span
+                        class="lang-badge">Gujarati ગુજરાતી</span><span class="lang-badge">Kannada ಕನ್ನಡ</span><span
+                        class="lang-badge">Malayalam മലയാളം</span><span class="lang-badge">Odia ଓଡ଼ିଆ</span><span
+                        class="lang-badge">Punjabi ਪੰਜਾਬੀ</span><span class="lang-badge">Assamese অসমীয়া</span><span
+                        class="lang-badge">Maithili मैथिली</span><span class="lang-badge">Santali ᱥᱟᱱᱛᱟᱲᱤ</span><span
+                        class="lang-badge">Kashmiri کٲشُر</span><span class="lang-badge">Sindhi سنڌي</span><span
+                        class="lang-badge">Konkani कोंकणी</span><span class="lang-badge">Dogri डोगरी</span><span
+                        class="lang-badge">Manipuri মৈতৈলোন্</span><span class="lang-badge">Bodo बड़ो</span><span
+                        class="lang-badge">Sanskrit संस्कृतम्</span><span class="lang-badge">Nepali नेपाली</span>
+                </div>
+
+                <div class="lang-section">
+                    <div class="lang-section-title">🌾 Bihar / UP / MP</div>
+                    <span class="lang-badge">Bhojpuri भोजपुरी</span><span class="lang-badge">Magahi मगही</span><span
+                        class="lang-badge">Awadhi अवधी</span><span class="lang-badge">Brajbhasha ब्रजभाषा</span><span
+                        class="lang-badge">Chhattisgarhi छत्तीसगढ़ी</span><span class="lang-badge">Bundeli
+                        बुंदेली</span><span class="lang-badge">Dakhini दक्खिनी</span>
+                </div>
+
+                <div class="lang-section">
+                    <div class="lang-section-title">🏜️ Rajasthan / Gujarat</div>
+                    <span class="lang-badge">Rajasthani राजस्थानी</span><span class="lang-badge">Marwari
+                        मारवाड़ी</span><span class="lang-badge">Malvi मालवी</span><span class="lang-badge">Hadothi
+                        हाड़ौती</span><span class="lang-badge">Mewari मेवाड़ी</span><span class="lang-badge">Nimadi
+                        निमाड़ी</span><span class="lang-badge">Kachchi કચ્છી</span><span class="lang-badge">Bagri
+                        बागड़ी</span><span class="lang-badge">Wagdi वागड़ी</span>
+                </div>
+
+                <div class="lang-section">
+                    <div class="lang-section-title">🏔️ Haryana / Punjab / Himachal</div>
+                    <span class="lang-badge">Haryanvi हरियाणवी</span><span class="lang-badge">Himachali
+                        हिमाचली</span><span class="lang-badge">Kangri कांगड़ी</span><span class="lang-badge">Kulvi
+                        कुल्लवी</span>
+                </div>
+
+                <div class="lang-section">
+                    <div class="lang-section-title">🏔️ Uttarakhand</div>
+                    <span class="lang-badge">Garhwali गढ़वाली</span><span class="lang-badge">Kumaoni कुमाऊँनी</span>
+                </div>
+
+                <div class="lang-section">
+                    <div class="lang-section-title">🌿 Northeast India</div>
+                    <span class="lang-badge">Mizo Mizo ṭawng</span><span class="lang-badge">Khasi খাসি</span><span
+                        class="lang-badge">Nagamese</span><span class="lang-badge">Lepcha ᰛᰩᰵ</span><span
+                        class="lang-badge">Limbu ᤕᤠᤰ</span>
+                </div>
+
+                <div class="lang-section">
+                    <div class="lang-section-title">🌴 South India</div>
+                    <span class="lang-badge">Tulu ತುಳು</span><span class="lang-badge">Goan Konkani</span><span
+                        class="lang-badge">Koya కోయ</span><span class="lang-badge">Gondi गोंडी</span>
+                </div>
+
+                <div class="lang-section">
+                    <div class="lang-section-title">🪶 Tribal Languages</div>
+                    <span class="lang-badge">Bhili भीली</span><span class="lang-badge">Ho हो</span><span
+                        class="lang-badge">Warli वारली</span><span class="lang-badge">Mundari मुंडारी</span><span
+                        class="lang-badge">Lambadi లంబాడి</span><span class="lang-badge">Sadri सादरी</span><span
+                        class="lang-badge">Kurukh कुड़ुख</span>
+                </div>
+
+                <div style="background:#f0fdf4;border-radius:8px;padding:14px;margin-top:8px;">
+                    <div style="font-size:13px;font-weight:600;color:#14532d;margin-bottom:6px;">🤖 Language Test</div>
+                    <div style="font-size:12px;color:#6b7280;margin-bottom:10px;">Select karo aur dekho bot kaise
+                        respond karta hai:</div>
+                    <select class="lang-select" onchange="testLang(this.value)" style="width:100%;max-width:300px;">
+                        <option value="">-- Language select karo --</option>
+                        <option value="bho">Bhojpuri भोजपुरी</option>
+                        <option value="hi">Hindi हिंदी</option>
+                        <option value="mai">Maithili मैथिली</option>
+                        <option value="mag">Magahi मगही</option>
+                        <option value="pa">Punjabi ਪੰਜਾਬੀ</option>
+                        <option value="mr">Marathi मराठी</option>
+                        <option value="te">Telugu తెలుగు</option>
+                        <option value="ta">Tamil தமிழ்</option>
+                    </select>
+                    <div id="lang-test-result" style="margin-top:12px;font-size:13px;color:#374151;line-height:1.8;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FARMERS SECTION -->
+        <div id="sec-farmers" style="display:none;">
+            <div class="card">
+                <h3>👨‍🌾 All Registered Farmers</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>State</th>
+                            <th>Language</th>
+                            <th>Plan</th>
+                            <th>Messages</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ramesh Kumar</td>
+                            <td>+91 9876543210</td>
+                            <td>Bihar</td>
+                            <td>Bhojpuri</td>
+                            <td><span class="badge gold">⭐ Premium</span></td>
+                            <td>142</td>
+                            <td>Jan 2024</td>
+                        </tr>
+                        <tr>
+                            <td>Sunita Devi</td>
+                            <td>+91 8765432109</td>
+                            <td>Bihar</td>
+                            <td>Hindi</td>
+                            <td><span class="badge green">Free</span></td>
+                            <td>38</td>
+                            <td>Feb 2024</td>
+                        </tr>
+                        <tr>
+                            <td>Gurpreet Singh</td>
+                            <td>+91 9988776655</td>
+                            <td>Punjab</td>
+                            <td>Punjabi</td>
+                            <td><span class="badge gold">⭐ Premium</span></td>
+                            <td>210</td>
+                            <td>Dec 2023</td>
+                        </tr>
+                        <tr>
+                            <td>Anita Patil</td>
+                            <td>+91 7766554433</td>
+                            <td>Maharashtra</td>
+                            <td>Marathi</td>
+                            <td><span class="badge green">Free</span></td>
+                            <td>21</td>
+                            <td>Mar 2024</td>
+                        </tr>
+                        <tr>
+                            <td>Mohan Lal</td>
+                            <td>+91 8899001122</td>
+                            <td>UP</td>
+                            <td>Awadhi</td>
+                            <td><span class="badge gold">⭐ Premium</span></td>
+                            <td>89</td>
+                            <td>Jan 2024</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- MANDI SECTION -->
+        <div id="sec-mandi" style="display:none;">
+            <div class="card">
+                <h3>💰 Today's Mandi Rates — All Crops</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Crop</th>
+                            <th>State</th>
+                            <th>Market</th>
+                            <th>Min (₹/q)</th>
+                            <th>Max (₹/q)</th>
+                            <th>Modal (₹/q)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>🌾 Wheat / गेहूं</td>
+                            <td>Bihar</td>
+                            <td>Patna</td>
+                            <td>2,100</td>
+                            <td>2,250</td>
+                            <td><b>2,180</b></td>
+                        </tr>
+                        <tr>
+                            <td>🌿 Mustard / सरसों</td>
+                            <td>UP</td>
+                            <td>Muzaffarpur</td>
+                            <td>4,800</td>
+                            <td>5,200</td>
+                            <td><b>5,050</b></td>
+                        </tr>
+                        <tr>
+                            <td>🥔 Potato / आलू</td>
+                            <td>Punjab</td>
+                            <td>Gaya</td>
+                            <td>900</td>
+                            <td>1,200</td>
+                            <td><b>1,050</b></td>
+                        </tr>
+                        <tr>
+                            <td>🌾 Paddy / धान</td>
+                            <td>Bihar</td>
+                            <td>Bhagalpur</td>
+                            <td>1,700</td>
+                            <td>1,900</td>
+                            <td><b>1,815</b></td>
+                        </tr>
+                        <tr>
+                            <td>🧅 Onion / प्याज</td>
+                            <td>Maharashtra</td>
+                            <td>Nashik</td>
+                            <td>1,500</td>
+                            <td>2,000</td>
+                            <td><b>1,750</b></td>
+                        </tr>
+                        <tr>
+                            <td>🍅 Tomato / टमाटर</td>
+                            <td>UP</td>
+                            <td>Varanasi</td>
+                            <td>800</td>
+                            <td>1,500</td>
+                            <td><b>1,150</b></td>
+                        </tr>
+                        <tr>
+                            <td>🌽 Maize / मक्का</td>
+                            <td>Bihar</td>
+                            <td>Darbhanga</td>
+                            <td>1,400</td>
+                            <td>1,600</td>
+                            <td><b>1,500</b></td>
+                        </tr>
+                        <tr>
+                            <td>🫘 Soybean / सोयाबीन</td>
+                            <td>MP</td>
+                            <td>Indore</td>
+                            <td>3,800</td>
+                            <td>4,200</td>
+                            <td><b>4,050</b></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- DISEASE SECTION -->
+        <div id="sec-disease" style="display:none;">
+            <div class="card">
+                <h3>🔬 Disease Detection Log</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Farmer</th>
+                            <th>Crop</th>
+                            <th>Disease</th>
+                            <th>Confidence</th>
+                            <th>Severity</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ramesh Kumar</td>
+                            <td>Wheat</td>
+                            <td>Yellow Rust</td>
+                            <td>91%</td>
+                            <td><span class="badge" style="background:#fee2e2;color:#991b1b;">High 🔴</span></td>
+                            <td>Today</td>
+                        </tr>
+                        <tr>
+                            <td>Sunita Devi</td>
+                            <td>Paddy</td>
+                            <td>Brown Spot</td>
+                            <td>87%</td>
+                            <td><span class="badge gold">Medium 🟡</span></td>
+                            <td>Today</td>
+                        </tr>
+                        <tr>
+                            <td>Mohan Lal</td>
+                            <td>Sugarcane</td>
+                            <td>Red Rot</td>
+                            <td>79%</td>
+                            <td><span class="badge" style="background:#fee2e2;color:#991b1b;">High 🔴</span></td>
+                            <td>Yesterday</td>
+                        </tr>
+                        <tr>
+                            <td>Kavitha R.</td>
+                            <td>Cotton</td>
+                            <td>Whitefly</td>
+                            <td>84%</td>
+                            <td><span class="badge gold">Medium 🟡</span></td>
+                            <td>Yesterday</td>
+                        </tr>
+                        <tr>
+                            <td>Pradeep Yadav</td>
+                            <td>Mustard</td>
+                            <td>Aphid</td>
+                            <td>92%</td>
+                            <td><span class="badge green">Low 🟢</span></td>
+                            <td>2 days ago</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CONVERSATIONS SECTION -->
+        <div id="sec-conversations" style="display:none;">
+            <div class="card">
+                <h3>💬 Recent Conversations</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Farmer</th>
+                            <th>Last Message</th>
+                            <th>Intent</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ramesh Kumar</td>
+                            <td>Gehu ka bhav kya hai?</td>
+                            <td><span class="badge gold">Mandi</span></td>
+                            <td>2 min ago</td>
+                            <td><span class="badge green">Replied</span></td>
+                        </tr>
+                        <tr>
+                            <td>Sunita Devi</td>
+                            <td>Dhan mein bimari hai</td>
+                            <td><span class="badge" style="background:#fee2e2;color:#991b1b;">Disease</span></td>
+                            <td>5 min ago</td>
+                            <td><span class="badge green">Replied</span></td>
+                        </tr>
+                        <tr>
+                            <td>Gurpreet Singh</td>
+                            <td>Kal barish hogi?</td>
+                            <td><span class="badge" style="background:#e0f2fe;color:#075985;">Weather</span></td>
+                            <td>9 min ago</td>
+                            <td><span class="badge green">Replied</span></td>
+                        </tr>
+                        <tr>
+                            <td>Anita Patil</td>
+                            <td>PM Kisan ka paisa?</td>
+                            <td><span class="badge green">Scheme</span></td>
+                            <td>12 min ago</td>
+                            <td><span class="badge green">Replied</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SETTINGS SECTION -->
+        <div id="sec-settings" style="display:none;">
+            <div class="card">
+                <h3>⚙️ Bot Configuration</h3>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td style="color:#6b7280;width:200px;">Bot Name</td>
+                            <td><b>Kisan Saathi AI</b></td>
+                        </tr>
+                        <tr>
+                            <td style="color:#6b7280;">AI Model</td>
+                            <td><b>Llama 3.3 70B (Groq)</b></td>
+                        </tr>
+                        <tr>
+                            <td style="color:#6b7280;">Default Language</td>
+                            <td><b>Hindi</b></td>
+                        </tr>
+                        <tr>
+                            <td style="color:#6b7280;">Free Tier Limit</td>
+                            <td><b>10 messages/day</b></td>
+                        </tr>
+                        <tr>
+                            <td style="color:#6b7280;">Premium Price</td>
+                            <td><b>₹49/month</b></td>
+                        </tr>
+                        <tr>
+                            <td style="color:#6b7280;">Groq API</td>
+                            <td><span class="badge green">✅ Connected</span></td>
+                        </tr>
+                        <tr>
+                            <td style="color:#6b7280;">Supabase DB</td>
+                            <td><span class="badge green">✅ Connected</span></td>
+                        </tr>
+                        <tr>
+                            <td style="color:#6b7280;">WhatsApp API</td>
+                            <td><span class="badge gold">⏳ Pending</span></td>
+                        </tr>
+                        <tr>
+                            <td style="color:#6b7280;">Languages</td>
+                            <td><b>50+ Indian Languages</b></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Notification -->
+    <div class="notify" id="notify"></div>
+
+    <script>
+        function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleString('hi-IN');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        setInterval(() => {
+            const s2 = document.getElementById('s2');
+            s2.textContent = (parseInt(s2.textContent.replace(',', '')) + Math.floor(Math.random() * 3)).toLocaleString('en-IN');
+        }, 5000);
+
+        function showSection(name) {
+            const sections = ['dashboard', 'farmers', 'conversations', 'mandi', 'disease', 'languages', 'settings'];
+            sections.forEach(s => {
+                const el = document.getElementById('sec-' + s);
+                if (el) el.style.display = (s === name) ? 'block' : 'none';
+            });
+            const titles = {
+                dashboard: 'Dashboard Overview', farmers: 'All Farmers',
+                conversations: 'Conversations', mandi: 'Mandi Prices',
+                disease: 'Disease Log', languages: 'Supported Languages',
+                settings: 'Settings'
+            };
+            document.getElementById('page-title').textContent = titles[name] || name;
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function setLanguage(val) {
+            if (!val) return;
+            const names = {
+                hi: 'Hindi (हिंदी)', bn: 'Bengali (বাংলা)', te: 'Telugu (తెలుగు)',
+                mr: 'Marathi (मराठी)', ta: 'Tamil (தமிழ்)', ur: 'Urdu (اردو)',
+                gu: 'Gujarati (ગુજરાતી)', kn: 'Kannada (ಕನ್ನಡ)', ml: 'Malayalam (മലയാളം)',
+                or: 'Odia (ଓଡ଼ିଆ)', pa: 'Punjabi (ਪੰਜਾਬੀ)', as: 'Assamese (অসমীয়া)',
+                mai: 'Maithili (मैथिली)', bho: 'Bhojpuri (भोजपुरी)', mag: 'Magahi (मगही)',
+                awa: 'Awadhi (अवधी)', raj: 'Rajasthani (राजस्थानी)', bgc: 'Haryanvi (हरियाणवी)',
+                gbm: 'Garhwali (गढ़वाली)', kfy: 'Kumaoni (कुमाऊँनी)', hne: 'Chhattisgarhi (छत्तीसगढ़ी)',
+                mwr: 'Marwari (मारवाड़ी)', tcy: 'Tulu (ತುಳು)', lus: 'Mizo', kha: 'Khasi',
+                sat: 'Santali', ks: 'Kashmiri', sd: 'Sindhi', kok: 'Konkani', doi: 'Dogri',
+                mni: 'Manipuri', brx: 'Bodo', sa: 'Sanskrit'
+            };
+            const n = notify = document.getElementById('notify');
+            n.textContent = '✅ Language set to: ' + (names[val] || val) + ' — Bot ab is bhasha mein reply karega!';
+            n.style.display = 'block';
+            setTimeout(() => n.style.display = 'none', 3000);
+        }
+
+        function testLang(val) {
+            const responses = {
+                bho: '🌾 राम राम! का हाल बा? हमार Kisan Saathi AI रहा — रउआ के खेती के बारे में सब बता देब! का जानल चाहत बानी?',
+                hi: '🌾 नमस्ते! मैं Kisan Saathi AI हूं। आपकी खेती से जुड़ी हर समस्या का हल देता हूं। क्या जानना चाहते हैं?',
+                mai: '🌾 प्रणाम! हम Kisan Saathi AI छी। अहाँक खेती संबंधी सब प्रश्नक उत्तर देब। की जानय चाहैत छी?',
+                mag: '🌾 परनाम! हम Kisan Saathi AI हियो। तोहर खेती के सब सवाल के जवाब देबो। का जाने चाहत हो?',
+                pa: '🌾 ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ Kisan Saathi AI ਹਾਂ। ਤੁਹਾਡੀ ਖੇਤੀ ਬਾਰੇ ਸਾਰੀ ਮਦਦ ਕਰਾਂਗਾ!',
+                mr: '🌾 नमस्कार! मी Kisan Saathi AI आहे। तुमच्या शेतीसंबंधी सर्व प्रश्नांची उत्तरे देतो!',
+                te: '🌾 నమస్కారం! నేను Kisan Saathi AI ని. మీ వ్యవసాయ సమస్యలన్నింటికీ సహాయం చేస్తాను!',
+                ta: '🌾 வணக்கம்! நான் Kisan Saathi AI. உங்கள் விவசாய கேள்விகளுக்கு உதவுகிறேன்!'
+            };
+            const r = document.getElementById('lang-test-result');
+            r.innerHTML = responses[val] ? '<div style="background:#f0fdf4;padding:12px;border-radius:8px;border-left:3px solid #14532d;">' + responses[val] + '</div>' : '';
+        }
+    </script>
+</body>
+
+</html>
