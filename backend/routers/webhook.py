@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Request, BackgroundTasks
 from fastapi.responses import PlainTextResponse
 import httpx
+import os
 from config import settings
 from services.message_handler import handle_message
 from services.farmer_service import get_or_create_farmer
+from services.bhashini_service import speech_to_text
 
 router = APIRouter()
 
@@ -28,14 +30,34 @@ async def receive_message(request: Request, background_tasks: BackgroundTasks):
         name = contact["profile"]["name"]
         msg_type = message["type"]
         content = {}
+
         if msg_type == "text":
             content = {"text": message["text"]["body"]}
+        elif msg_type == "audio":
+            audio_id = message["audio"]["id"]
+            audio_bytes = await download_media(audio_id)
+            text = await speech_to_text(audio_bytes)
+            content = {"text": text or "Voice message samajh nahi aaya"}
+            msg_type = "text"
+        elif msg_type == "image":
+            image_id = message["image"]["id"]
+            content = {"image_id": image_id}
+
         background_tasks.add_task(
             process_reply, phone, name, msg_type, content
         )
         return {"status": "received"}
     except Exception as e:
         return {"status": "ignored"}
+
+async def download_media(media_id: str) -> bytes:
+    url = f"https://graph.facebook.com/v18.0/{media_id}"
+    headers = {"Authorization": f"Bearer {settings.WHATSAPP_TOKEN}"}
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url, headers=headers)
+        media_url = resp.json()["url"]
+        media_resp = await client.get(media_url, headers=headers)
+        return media_resp.content
 
 async def process_reply(phone, name, msg_type, content):
     farmer = await get_or_create_farmer(phone, name)
