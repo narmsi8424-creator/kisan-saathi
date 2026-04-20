@@ -1,69 +1,44 @@
-from services.llm_service import generate_response
-from services.mandi_service import get_mandi_prices
-from services.weather_service import get_weather
-from services.rag_service import retrieve_context
-from services.vision_service import analyze_plant_image
 import httpx
 from config import settings
 
-async def handle_message(farmer, msg_type, content):
-    text = content.get("text", "")
-    intent = detect_intent(text)
-    context = ""
+SYSTEM_PROMPT = """
+Tu ek expert agricultural assistant hai jiska naam Kisan Saathi hai.
+Farmers ki madad karta hai Hindi mein, friendly aur practical advice deke.
+Hamesha short aur clear jawab do. End mein likho: Aur koi sawal? Mujhe batao!
+"""
 
-    # Image bheja toh disease detection
-    if msg_type == "image":
-        image_id = content.get("image_id", "")
-        image_bytes = await download_image(image_id)
-        reply = await analyze_plant_image(image_data=image_bytes)
-        return reply, "text"
+async def generate_response(user_message: str, context: str = "", farmer: dict = {}, intent: str = "general") -> str:
+    language = farmer.get("language", "Hindi")
+    name = farmer.get("name", "Kisan Bhai")
 
-    if intent == "mandi_price":
-        crop = extract_crop(text)
-        context = await get_mandi_prices(crop, farmer.get("state", "Bihar"))
-    elif intent == "weather":
-        context = await get_weather(
-            farmer.get("district", "Patna"),
-            farmer.get("state", "Bihar")
+    user_prompt = f"""
+Farmer: {name}, Language: {language}, Intent: {intent}
+Context: {context}
+Sawal: {user_message}
+{language} mein jawab do.
+"""
+
+    headers = {
+        "Authorization": f"Bearer {settings.GROQ_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "model": settings.GROQ_MODEL,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt},
+        ],
+        "temperature": 0.7,
+        "max_tokens": 800,
+    }
+
+    async with httpx.AsyncClient(timeout=45) as client:
+        response = await client.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers=headers,
+            json=payload,
         )
-    elif intent == "govt_scheme":
-        context = await retrieve_context(text)
-    elif intent == "disease_query":
-        context = await retrieve_context(text)
-
-    reply = await generate_response(
-        user_message=text,
-        context=context,
-        farmer=farmer,
-        intent=intent,
-    )
-    return reply, "text"
-
-async def download_image(image_id: str) -> bytes:
-    url = f"https://graph.facebook.com/v18.0/{image_id}"
-    headers = {"Authorization": f"Bearer {settings.WHATSAPP_TOKEN}"}
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.get(url, headers=headers)
-        image_url = resp.json()["url"]
-        img_resp = await client.get(image_url, headers=headers)
-        return img_resp.content
-
-def detect_intent(text):
-    text = text.lower()
-    if any(k in text for k in ["bhav","rate","mandi","bechna","daam","price"]):
-        return "mandi_price"
-    if any(k in text for k in ["mausam","barish","weather","rain","baarish"]):
-        return "weather"
-    if any(k in text for k in ["yojana","scheme","subsidy","pm kisan","pm-kisan","bima","loan","kcc"]):
-        return "govt_scheme"
-    if any(k in text for k in ["bimari","disease","keeda","pest","dhabbe","peela"]):
-        return "disease_query"
-    return "general_agri"
-
-def extract_crop(text):
-    crops = ["wheat","gehu","rice","dhan","mustard","sarson",
-             "potato","aloo","onion","pyaz","maize","makka","tomato","tamatar"]
-    for crop in crops:
-        if crop in text.lower():
-            return crop
-    return "wheat"
+        response.raise_for_status()
+        data = response.json()
+        return data["choices"][0]["message"]["content"].strip()
