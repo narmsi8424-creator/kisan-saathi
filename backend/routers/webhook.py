@@ -77,4 +77,4 @@ async def send_reply(phone, text):
         "text": {"body": text},
     }
     async with httpx.AsyncClient(timeout=30) as client:
-        await client.post(url, headers=headers, json=payload)
+        resp = resp = resp = resp = await client.post(url, headers=headers, json=payload)
