@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request, BackgroundTasks
 from fastapi.responses import PlainTextResponse
 import httpx
-import os
 from config import settings
 from services.message_handler import handle_message
 from services.farmer_service import get_or_create_farmer
@@ -30,7 +29,6 @@ async def receive_message(request: Request, background_tasks: BackgroundTasks):
         name = contact["profile"]["name"]
         msg_type = message["type"]
         content = {}
-
         if msg_type == "text":
             content = {"text": message["text"]["body"]}
         elif msg_type == "audio":
@@ -42,12 +40,10 @@ async def receive_message(request: Request, background_tasks: BackgroundTasks):
         elif msg_type == "image":
             image_id = message["image"]["id"]
             content = {"image_id": image_id}
-
-        background_tasks.add_task(
-            process_reply, phone, name, msg_type, content
-        )
+        background_tasks.add_task(process_reply, phone, name, msg_type, content)
         return {"status": "received"}
     except Exception as e:
+        print(f"WEBHOOK ERROR: {e}")
         return {"status": "ignored"}
 
 async def download_media(media_id: str) -> bytes:
@@ -60,9 +56,14 @@ async def download_media(media_id: str) -> bytes:
         return media_resp.content
 
 async def process_reply(phone, name, msg_type, content):
-    farmer = await get_or_create_farmer(phone, name)
-    reply, _ = await handle_message(farmer, msg_type, content)
-    await send_reply(phone, reply)
+    try:
+        print(f"PROCESSING: {phone} {msg_type}")
+        farmer = await get_or_create_farmer(phone, name)
+        reply, _ = await handle_message(farmer, msg_type, content)
+        print(f"REPLY GENERATED: {reply[:50]}")
+        await send_reply(phone, reply)
+    except Exception as e:
+        print(f"PROCESS ERROR: {e}")
 
 async def send_reply(phone, text):
     url = f"{settings.WHATSAPP_API_URL}/{settings.WHATSAPP_PHONE_ID}/messages"
@@ -77,4 +78,6 @@ async def send_reply(phone, text):
         "text": {"body": text},
     }
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = resp = resp = resp = await client.post(url, headers=headers, json=payload)
+        resp = await client.post(url, headers=headers, json=payload)
+        print(f"REPLY STATUS: {resp.status_code}")
+        print(f"REPLY BODY: {resp.text}")
