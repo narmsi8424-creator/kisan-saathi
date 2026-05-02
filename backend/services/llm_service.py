@@ -27,8 +27,6 @@ Farmer name: {name}
 Intent: {intent}
 Context: {context}
 Farmer's message: {user_message}
-
-IMPORTANT: Detect language from farmer's message and reply in SAME language.
 """
 
     headers = {
