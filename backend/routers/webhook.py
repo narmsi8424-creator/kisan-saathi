@@ -58,10 +58,26 @@ async def download_media(media_id: str) -> bytes:
 async def process_reply(phone, name, msg_type, content):
     try:
         print(f"PROCESSING: {phone} {msg_type}")
-        farmer = await get_or_create_farmer(phone, name)
+
+        # Farmer get/create with detailed logging
+        try:
+            farmer = await get_or_create_farmer(phone, name)
+            print(f"FARMER OK: {farmer}")
+        except Exception as fe:
+            print(f"FARMER ERROR: {fe}")
+            farmer = {
+                "phone": phone,
+                "name": name,
+                "language": "Hindi",
+                "state": "Jharkhand",
+                "district": "Chatra",
+                "plan": "free",
+            }
+
         reply, _ = await handle_message(farmer, msg_type, content)
         print(f"REPLY GENERATED: {reply[:50]}")
         await send_reply(phone, reply)
+
     except Exception as e:
         print(f"PROCESS ERROR: {e}")
 
