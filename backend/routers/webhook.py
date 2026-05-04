@@ -1,12 +1,29 @@
 from fastapi import APIRouter, Request, BackgroundTasks
 from fastapi.responses import PlainTextResponse
 import httpx
+import time
 from config import settings
 from services.message_handler import handle_message
 from services.farmer_service import get_or_create_farmer
 from services.bhashini_service import speech_to_text
 
 router = APIRouter()
+
+# ── RATE LIMITING (5 messages per 60 seconds per number) ──────
+RATE_LIMIT = {}
+MAX_MESSAGES = 5
+TIME_WINDOW = 60
+
+def is_rate_limited(phone: str) -> bool:
+    now = time.time()
+    if phone not in RATE_LIMIT:
+        RATE_LIMIT[phone] = []
+    RATE_LIMIT[phone] = [t for t in RATE_LIMIT[phone] if now - t < TIME_WINDOW]
+    if len(RATE_LIMIT[phone]) >= MAX_MESSAGES:
+        print(f"RATE LIMITED: {phone}")
+        return True
+    RATE_LIMIT[phone].append(now)
+    return False
 
 @router.get("/webhook")
 async def verify_webhook(request: Request):
@@ -28,9 +45,17 @@ async def receive_message(request: Request, background_tasks: BackgroundTasks):
         phone = message["from"]
         name = contact["profile"]["name"]
         msg_type = message["type"]
+
+        # Rate limit check
+        if is_rate_limited(phone):
+            return {"status": "rate_limited"}
+
         content = {}
         if msg_type == "text":
-            content = {"text": message["text"]["body"]}
+            text = message["text"]["body"]
+            if len(text) > 1000:
+                text = text[:1000]
+            content = {"text": text}
         elif msg_type == "audio":
             audio_id = message["audio"]["id"]
             audio_bytes = await download_media(audio_id)
