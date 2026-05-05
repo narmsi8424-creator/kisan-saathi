@@ -47,3 +47,27 @@ Open your browser and go to `http://localhost:5000`
 ---
 
 ## 📁 Project Structure
+kisan-saathi/
+├── frontend/        # HTML/CSS/JS files
+├── backend/         # Python Flask app
+├── database/        # DB schema and migrations
+├── requirements.txt # Python dependencies
+└── Procfile         # Heroku deployment config
+
+---
+
+## 🙌 Contributing
+
+Pull requests are welcome! For major changes, please open an issue first.
+
+---
+
+## 📄 License
+
+MIT License — see [LICENSE](LICENSE) file for details.
+
+---
+
+## 👨‍💻 Author
+
+Made by [@narmsi8424-creator](https://github.com/narmsi8424-creator) — from Patna, Bihar 🇮🇳
