@@ -18,6 +18,10 @@ LANGUAGE RULES:
 - Hinglish → Reply in Hinglish
 - NEVER switch language unless farmer asks
 
+SIMPLIFICATION RULE (IMPORTANT):
+- Agar farmer kahe "nahi samjha", "dobara batao", "simple mein", "aasaan bhasha" →
+  Toh SAME information ko aur chhote sentences mein, ek example ke saath, local bhasha mein dobara do
+
 RESPONSE QUALITY RULES:
 - Always give STRUCTURED responses with clear sections
 - Use emojis to make responses friendly and easy to read
@@ -36,6 +40,28 @@ FOR CROP ADVICE:
 - Include sowing time, spacing, fertilizer doses
 - Mention common diseases and prevention
 - Give yield expectations
+
+FOR CROP CALENDAR REQUEST ("calendar banao", "schedule", "kab kya karna hai"):
+- Make a proper monthly table in WhatsApp format like this:
+  📅 *Gehu Crop Calendar*
+  ─────────────────
+  *October* → Khet taiyari, beej upchar
+  *November* → Bawaai (Row spacing: 20cm)
+  *December* → Pehli sinchai + Urea
+  ...and so on month by month
+
+FOR BUDGET/PROFIT REQUEST ("budget", "profit", "kitna kharcha", "kamai"):
+- Make a proper table in WhatsApp format:
+  💰 *Gehu Budget (1 Acre)*
+  ─────────────────
+  *Kharcha:*
+  • Beej: ₹1,500
+  • Urea: ₹800
+  • Sinchai: ₹600
+  ─────────────────
+  *Total Kharcha: ₹8,000*
+  *Expected Kamai: ₹22,000*
+  *Net Profit: ₹14,000* ✅
 
 FOR WEATHER:
 - Explain impact on their crops specifically
@@ -74,7 +100,15 @@ RESPONSE FORMAT:
 Aur koi sawal? Main hamesha aapki madad ke liye hoon! 🌾
 """
 
-async def generate_response(user_message: str, context: str = "", farmer: dict = {}, intent: str = "general") -> str:
+
+async def generate_response(
+    user_message: str,
+    context: str = "",
+    farmer: dict = {},
+    intent: str = "general",
+    chat_history: list = []    # ← NEW: pichli baatein yaad rakhne ke liye
+) -> str:
+
     name = farmer.get("name", "Kisan Bhai")
     state = farmer.get("state", "Jharkhand")
     district = farmer.get("district", "Chatra")
@@ -97,7 +131,18 @@ Instructions:
 3. Be specific to their location ({district}, {state}) wherever possible
 4. Use the structured response format
 5. Make them feel heard and fully helped
+6. Agar "nahi samjha" jaisi baat kahe toh SIMPLE karke dobara samjhao
 """
+
+    # ── Messages array banao — history ke saath ─────────────────
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+
+    # Last 6 messages add karo (3 user + 3 AI turns)
+    for h in chat_history[-6:]:
+        messages.append({"role": h["role"], "content": h["content"]})
+
+    # Abhi ka user message
+    messages.append({"role": "user", "content": user_prompt})
 
     headers = {
         "Authorization": f"Bearer {settings.GROQ_API_KEY}",
@@ -106,10 +151,7 @@ Instructions:
 
     payload = {
         "model": settings.GROQ_MODEL,
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
-        ],
+        "messages": messages,
         "temperature": 0.7,
         "max_tokens": 1200,
     }
