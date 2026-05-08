@@ -6,7 +6,8 @@ from services.vision_service import analyze_plant_image
 import httpx
 from config import settings
 
-async def handle_message(farmer, msg_type, content):
+# ── chat_history parameter add kiya ────────────────────────────
+async def handle_message(farmer, msg_type, content, chat_history=[]):
     text = content.get("text", "")
     intent = detect_intent(text)
     context = ""
@@ -35,8 +36,10 @@ async def handle_message(farmer, msg_type, content):
         context=context,
         farmer=farmer,
         intent=intent,
+        chat_history=chat_history,   # ← chat history pass kiya
     )
     return reply, "text"
+
 
 async def download_image(image_id: str) -> bytes:
     url = f"https://graph.facebook.com/v18.0/{image_id}"
@@ -46,6 +49,7 @@ async def download_image(image_id: str) -> bytes:
         image_url = resp.json()["url"]
         img_resp = await client.get(image_url, headers=headers)
         return img_resp.content
+
 
 def detect_intent(text):
     text = text.lower()
@@ -58,6 +62,7 @@ def detect_intent(text):
     if any(k in text for k in ["bimari","disease","keeda","pest","dhabbe","peela"]):
         return "disease_query"
     return "general_agri"
+
 
 def extract_crop(text):
     crops = ["wheat","gehu","rice","dhan","mustard","sarson",
